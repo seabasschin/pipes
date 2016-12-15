@@ -1,0 +1,1 @@
+#define MESSAGE_BUFFER_SIZE 1028
