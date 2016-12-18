@@ -85,7 +85,7 @@ int server_handshake2(char *buf, int from_client) {
 
     // Read the acknowledgement message from the client
     char received[MESSAGE_BUFFER_SIZE];
-    /* read(from_client, received, sizeof(received)); // hack */
+    read(from_client, received, sizeof(received)); // hack
     read(from_client, received, sizeof(received));
     printf("[*] Receieved: %s\n", received);
 
