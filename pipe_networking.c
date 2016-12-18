@@ -19,21 +19,15 @@ int server_handshake(int *from_client) {
     int private = open(pp, O_WRONLY);
     char *message = "syn-ack";
     write(private, message, sizeof(message));
-    close(private);
 
     char buf[MESSAGE_BUFFER_SIZE];
-    private = open(pp, O_RDONLY);
-    read(private, buf, sizeof(buf));
+    read(wkp, buf, sizeof(buf));
     printf("[*] Received: %s\n", buf);
-    close(private);
-
-    printf("Opening %s\n", pp);
-    int to_client = open(pp, O_WRONLY);
 
     *from_client = wkp;
     remove(pp);
 
-    return to_client;
+    return private;
 }
 
 int client_handshake(int *to_server) {
@@ -51,16 +45,12 @@ int client_handshake(int *to_server) {
     char received[MESSAGE_BUFFER_SIZE];
     read(private, received, sizeof(received));
     printf("[*] Received: %s\n", received);
-    close(private);
 
     char *message = "ack";
-    private = open(buf, O_WRONLY);
-    write(private, message, sizeof(message));
+    write(wkp, message, sizeof(message));
 
-    printf("Opening %s\n", buf);
-    int from_server = open(buf, O_RDONLY);
     *to_server = wkp;
     remove(WKP);
 
-    return from_server;
+    return private;
 }
