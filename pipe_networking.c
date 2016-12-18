@@ -32,15 +32,18 @@ int server_handshake(int *from_client) {
 }
 
 int client_handshake(int *to_server) {
+    // Create the private FIFO
     int pid = getpid();
     char buf[64];
     sprintf(buf, "%d", pid);
     mkfifo(buf, 0644);
     printf("[*] Connecting to server\n");
 
+    // Open the well-known-pipe and send the name of the private fifo over
     int wkp = open(WKP, O_WRONLY);
     write(wkp, buf, sizeof(buf));
 
+    // Read the acknowledgement message from the client and remove the private fifo
     int private = open(buf, O_RDONLY);
     char received[MESSAGE_BUFFER_SIZE];
     read(private, received, sizeof(received));
@@ -49,18 +52,21 @@ int client_handshake(int *to_server) {
         printf("Error: %s\n", strerror(errno));
     }
 
+    // Send back an acknowledgement message to the client
     char *message = "ack";
     write(wkp, message, sizeof(message));
+    printf("[*] Connection established\n");
 
     *to_server = wkp;
-
     return private;
 }
 
 int server_handshake1(char *buf) {
+    // Create the well-known-pipe
     mkfifo(WKP, 0644);
     printf("[*] Waiting for client connection\n");
 
+    // Read the name of the private fifo and remove it
     int wkp = open(WKP, O_RDONLY);
     read(wkp, buf, sizeof(buf));
     printf("[*] Received: %s\n", buf);
@@ -72,14 +78,16 @@ int server_handshake1(char *buf) {
 }
 
 int server_handshake2(char *buf, int from_client) {
+    // Open the private fifo and send a synchronization message
     int private = open(buf, O_WRONLY);
     char *message = "syn-ack";
     write(private, message, sizeof(message));
 
+    // Read the acknowledgement message from the client
     char received[MESSAGE_BUFFER_SIZE];
-    read(from_client, received, sizeof(received)); // hack
+    /* read(from_client, received, sizeof(received)); // hack */
     read(from_client, received, sizeof(received));
-    printf("[*] Received: '%s'\n", received);
+    printf("[*] Receieved: %s\n", received);
 
     return private;
 }
